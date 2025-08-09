@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Arrange the Message</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #283e51, #485563);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #e0f7fa;
+      margin-bottom: 10px;
+      z-index: 2;
+    }
+
+    #sentence {
+      font-size: 48px;
+      color: #fff;
+      letter-spacing: 12px;
+      user-select: none;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+   .letter {
+  font-size: 3rem; /* Keep your current size */
+  font-weight: bold;
+  cursor: grab;
+  user-select: none;
+  letter-spacing: 20px; /* Reduce space between letters */
+}
+
+
+    .letter:hover {
+      transform: scale(1.4);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .space {
+      width: 40px;
+    }
+
+    .hint-bulb {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 30px;
+      height: 30px;
+      background: url('https://cdn-icons-png.flaticon.com/512/61/61456.png') no-repeat center;
+      background-size: contain;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    .hint-text {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: black;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 3;
+    }
+
+    .hint-bulb:hover + .hint-text {
+      display: block;
+    }
+
+    #videoContainer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #videoContainer video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #message {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: #fff;
+      z-index: 10;
+      animation: popUp 2s ease-in-out forwards;
+    }
+
+    @keyframes popUp {
+      0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+      50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    }
+
+    .firework {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background-color: yellow;
+      border-radius: 50%;
+      animation: explode 1s ease-out forwards;
+      z-index: 9;
+    }
+
+    @keyframes explode {
+      0% { transform: scale(0); opacity: 1; }
+      100% { transform: scale(5); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Hint -->
+<div class="hint-bulb"></div>
+<div class="hint-text">GOD BLESS YOU</div>
+
+<!-- Order instruction -->
+<h2>....Order the sentence ....</h2>
+
+<!-- Jumbled sentence -->
+<div id="sentence"></div>
+
+<!-- Video Background -->
+<div id="videoContainer">
+  <video id="blessVideo" autoplay muted>
+    <source src="videos/blessings.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+
+<!-- Message after video -->
+<div id="message">23. It’s begin</div>
+
+<script>
+  const correct = "GOD BLESS YOU!".split("");
+  let current = "GDO BLSES YUO!".split("");
+
+  const container = document.getElementById("sentence");
+  const videoContainer = document.getElementById("videoContainer");
+  const blessVideo = document.getElementById("blessVideo");
+  const hintBulb = document.querySelector(".hint-bulb");
+  const hintText = document.querySelector(".hint-text");
+  const message = document.getElementById("message");
+
+  function render() {
+    container.innerHTML = "";
+    current.forEach((char, index) => {
+      if (char === " ") {
+        const spacer = document.createElement("span");
+        spacer.className = "space";
+        container.appendChild(spacer);
+      } else {
+        const span = document.createElement("span");
+        span.className = "letter";
+        span.draggable = true;
+        span.innerText = char;
+        span.dataset.index = index;
+
+        span.addEventListener("dragstart", dragStart);
+        span.addEventListener("dragover", dragOver);
+        span.addEventListener("drop", drop);
+
+        container.appendChild(span);
+      }
+    });
+  }
+
+  let draggedIndex = null;
+
+  function dragStart(e) {
+    draggedIndex = +e.target.dataset.index;
+  }
+
+  function dragOver(e) {
+    e.preventDefault();
+  }
+
+  function drop(e) {
+    const targetIndex = +e.target.dataset.index;
+    [current[draggedIndex], current[targetIndex]] = [current[targetIndex], current[draggedIndex]];
+    render();
+    checkAnswer();
+  }
+
+  function checkAnswer() {
+    if (current.join("") === correct.join("")) {
+      videoContainer.style.display = "block";
+      blessVideo.play();
+
+      // ⬅️ This line is the ONLY change: hide the heading when video starts
+      document.querySelector("h2").style.display = "none";
+
+      blessVideo.onended = () => {
+        container.style.display = "none";
+        hintBulb.style.display = "none";
+        hintText.style.display = "none";
+        videoContainer.style.display = "none";
+
+        message.style.display = "block";
+        triggerFireworks();
+
+        setTimeout(() => {
+          window.location.href = "birthday.html";
+        }, 2000);
+      };
+    }
+  }
+
+  function triggerFireworks() {
+    for (let i = 0; i < 20; i++) {
+      const fw = document.createElement("div");
+      fw.className = "firework";
+      fw.style.left = Math.random() * window.innerWidth + "px";
+      fw.style.top = Math.random() * window.innerHeight + "px";
+      document.body.appendChild(fw);
+      setTimeout(() => fw.remove(), 1000);
+    }
+  }
+
+  render();
+</script>
+
+</body>
+</html>
