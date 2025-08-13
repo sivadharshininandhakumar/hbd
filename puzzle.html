@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Arrange the Message + Birthday Surprise</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* --- Styles for Arrange the Message --- */
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: radial-gradient(circle, #283e51, #485563);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      position: relative;
+      text-align: center;
+    }
+
+    h2 {
+      font-size: 28px;
+      color: #e0f7fa;
+      margin-bottom: 10px;
+      z-index: 2;
+    }
+
+    #sentence {
+      font-size: 48px;
+      color: #fff;
+      letter-spacing: 12px;
+      user-select: none;
+      z-index: 2;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .letter {
+      display: inline-block;
+      padding: 3px 8px;
+      margin: 1px;
+      cursor: grab;
+      transition: transform 0.5s ease-in-out;
+      animation: float 3s ease-in-out infinite;
+      font-family: 'Arial Black', sans-serif;
+    }
+
+    .letter:hover {
+      transform: scale(1.4);
+    }
+
+    @keyframes float {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .space {
+      width: 40px;
+    }
+
+    .hint-bulb {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 30px;
+      height: 30px;
+      background: url('https://cdn-icons-png.flaticon.com/512/61/61456.png')
+        no-repeat center;
+      background-size: contain;
+      cursor: pointer;
+      z-index: 3;
+    }
+
+    .hint-text {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 10px;
+      background-color: rgba(255, 255, 255, 0.9);
+      color: black;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 3;
+    }
+
+    .hint-bulb:hover + .hint-text {
+      display: block;
+    }
+
+    #videoContainer {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #videoContainer video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    #message {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 60px;
+      color: #fff;
+      z-index: 10;
+      animation: popUp 2s ease-in-out forwards;
+    }
+
+    @keyframes popUp {
+      0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .firework {
+      position: fixed;
+      width: 6px;
+      height: 6px;
+      background-color: yellow;
+      border-radius: 50%;
+      animation: explode 1s ease-out forwards;
+      z-index: 9;
+    }
+
+    @keyframes explode {
+      0% {
+        transform: scale(0);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(5);
+        opacity: 0;
+      }
+    }
+
+    /* --- Styles for Birthday Surprise --- */
+
+    #startScreen {
+      display: none; /* Hide startScreen since we don't need it here */
+      z-index: 10;
+      cursor: pointer;
+      color: teal;
+      font-size: large;
+      font-weight: bold;
+    }
+
+    #bg-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: -1;
+      display: none; /* hide initially */
+    }
+
+    .center-content {
+      display: none; /* hide slideshow initially */
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      z-index: 5;
+      position: relative;
+    }
+
+    .photo-container {
+      max-width: 80vw;
+      max-height: 60vh;
+      margin-bottom: 20px;
+    }
+   img {
+      max-width: 100%;
+      max-height: 100%;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    .word {
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+    }
+
+    .show {
+      opacity: 1;
+    }
+
+    .word {
+      font-size: 60px;
+      font-weight: bold;
+      color: peru;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      z-index: 100;
+    }
+
+    .final-message {
+      font-size: 48px;
+      font-weight: bold;
+      color: lemonchiffon;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      display: none;
+      z-index: 101;
+      animation: fadeIn 2s ease forwards;
+    }
+
+    @keyframes fadeIn {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Hint -->
+  <div class="hint-bulb"></div>
+  <div class="hint-text">
+    >>Long press the letter and Swap it.<br />
+    >>GOD BLESS YOU
+  </div>
+
+  <!-- Order instruction -->
+  <h2>....Order the sentence ....</h2><br />
+
+  <!-- Jumbled sentence -->
+  <div id="sentence"></div>
+
+  <!-- Video Background for Blessings -->
+  <div id="videoContainer">
+    <video id="blessVideo">
+      <source src="videos/blessings.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+  </div>
+
+  <!-- Message after blessings video -->
+  <div id="message">23. It's begin</div>
+
+  <!-- Audio for blessings background music -->
+  <audio id="bgMusic" src="music/blessings.mp3" preload="auto"></audio>
+
+  <!-- Background Video (Birthday Surprise) -->
+  <video id="bg-video" loop playsinline>
+    <source src="videos/background.mp4" type="video/mp4" />
+    Your browser does not support the video tag.
+  </video>
+
+  <!-- Photo Slideshow -->
+  <div class="center-content" id="slideshow">
+    <div class="photo-container">
+      <img id="photo" src="" alt="Photo" />
+    </div>
+    <div class="word" id="word"></div>
+  </div>
+
+  <!-- Final overlay and message -->
+  <div class="overlay" id="overlay"></div>
+  <div class="final-message" id="finalMessage">
+    Treat Marakama <br />Vachirunga 😁
+  </div>
+
+  <script>
+    // --- Arrange the Message Variables ---
+    const correct = "GOD BLESS YOU!".split("");
+    let current = "GDO BLSES YUO!".split("");
+
+    const container = document.getElementById("sentence");
+    const videoContainer = document.getElementById("videoContainer");
+    const blessVideo = document.getElementById("blessVideo");
+    const bgMusic = document.getElementById("bgMusic");
+    const hintBulb = document.querySelector(".hint-bulb");
+    const hintText = document.querySelector(".hint-text");
+    const message = document.getElementById("message");
+
+    // --- Birthday Surprise Variables ---
+    const bgVideo = document.getElementById("bg-video");
+    const slideshow = document.getElementById("slideshow");
+    const photoEl = document.getElementById("photo");
+    const wordEl = document.getElementById("word");
+    const overlay = document.getElementById("overlay");
+    const finalMessageEl = document.getElementById("finalMessage");
+
+    const images = [
+      "images/img4.jpeg",          
+      "images/img2.jpeg",
+      "images/img3.jpeg",
+      "images/img1.jpeg",
+      "images/img5.jpeg",
+      "images/img6.jpeg",
+      "images/img7.jpeg",
+      "images/img8.jpeg",
+    ];
+
+    const words = [
+      "Wishing",
+      "u",
+      "a",
+      "Happiee",
+      "Birthday",
+      "Jana Anna",
+      "(a)",
+      "Leo Vaeee",
+    ];
+
+    const displayDuration = 2400;
+    let currentIndex = 0;
+    let started = false;
+    let userInteracted = false;
+
+    // Ensure user interaction before playing music
+    document.body.addEventListener(
+      "click",
+      () => {
+        userInteracted = true;
+      },
+      { once: true }
+    );
+
+    // --- Arrange the Message Functions ---
+    function render() {
+      container.innerHTML = "";
+      current.forEach((char, index) => {
+        if (char === " ") {
+          const spacer = document.createElement("span");
+          spacer.className = "space";
+          container.appendChild(spacer);
+        } else {
+          const span = document.createElement("span");
+          span.className = "letter";
+          span.draggable = true;
+          span.innerText = char;
+          span.dataset.index = index;
+
+          span.addEventListener("dragstart", dragStart);
+          span.addEventListener("dragover", dragOver);
+          span.addEventListener("drop", drop);
+
+          container.appendChild(span);
+        }
+      });
+    }
+
+    let draggedIndex = null;
+
+    function dragStart(e) {
+      draggedIndex = +e.target.dataset.index;
+    }
+
+    function dragOver(e) {
+      e.preventDefault();
+    }
+
+    function drop(e) {
+      const targetIndex = +e.target.dataset.index;
+      [current[draggedIndex], current[targetIndex]] = [
+        current[targetIndex],
+        current[draggedIndex],
+      ];
+      render();
+      checkAnswer();
+    }
+
+    function checkAnswer() {
+      if (current.join("") === correct.join("")) {
+        videoContainer.style.display = "block";
+        blessVideo.play();
+
+        if (userInteracted) {
+          bgMusic.play().catch((err) =>
+            console.log("Music play error:", err)
+          );
+        }
+
+        document.querySelector("h2").style.display = "none";
+
+        blessVideo.onended = () => {
+          container.style.display = "none";
+          hintBulb.style.display = "none";
+          hintText.style.display = "none";
+          videoContainer.style.display = "none";
+          bgMusic.pause();
+          bgMusic.currentTime = 0;
+
+          message.style.display = "block";
+          triggerFireworks();
+
+          // Show message for 2 seconds then hide and start birthday surprise video & slideshow
+          setTimeout(() => {
+            message.style.display = "none"; // vanish message
+            startBirthdaySurprise(); // start video + slideshow
+          }, 2000);
+        };
+      }
+    }
+
+    function triggerFireworks() {
+      for (let i = 0; i < 20; i++) {
+        const fw = document.createElement("div");
+        fw.className = "firework";
+        fw.style.left = Math.random() * window.innerWidth + "px";
+        fw.style.top = Math.random() * window.innerHeight + "px";
+        document.body.appendChild(fw);
+        setTimeout(() => fw.remove(), 1000);
+      }
+    }
+
+    // --- Birthday Surprise Functions ---
+    function startBirthdaySurprise() {
+      // Show and play background video with sound
+      bgVideo.style.display = "block";
+      bgVideo.muted = false;
+      bgVideo.play().catch((err) => {
+        console.warn("Video play error:", err);
+      });
+
+      // Show slideshow container
+      slideshow.style.display = "flex";
+
+      currentIndex = 0;
+      showNext();
+    }
+function showNext() {
+  if (currentIndex >= images.length) {
+    slideshow.style.display = 'none';
+    overlay.style.display = 'block';
+    finalMessageEl.style.display = 'block';
+    bgVideo.pause();
+    bgVideo.style.display = 'none';
+    setTimeout(() => {
+      window.location.href = "index.html";
+    }, 3000);
+    return;
+  }
+
+  photoEl.classList.remove('show');
+  wordEl.classList.remove('show');
+
+  const newImage = new Image();
+  newImage.src = images[currentIndex];
+  newImage.onload = () => {
+    photoEl.src = newImage.src;
+    wordEl.textContent = words[currentIndex];
+    console.log('Showing image:', images[currentIndex], 'with word:', words[currentIndex]);
+
+    photoEl.classList.add('show');
+    wordEl.classList.add('show');
+    currentIndex++;
+    setTimeout(showNext, displayDuration);
+  };
+
+  newImage.onerror = () => {
+    console.error('Failed to load image:', newImage.src);
+    // You can add a default image or skip to the next image
+    currentIndex++;
+    setTimeout(showNext, displayDuration);
+  };
+}
+    
+   render();
+  </script>
+</body>
+</html>
